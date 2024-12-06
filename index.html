@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSE Dashboard Example</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      /* Uses a dark theme color scheme */
+      body {
+        font-family: Arial, sans-serif;
+        background: #0d1117;
+        color: #c9d1d9;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #58a6ff;
+      }
+
+      #value {
+        font-weight: bold;
+        font-size: 2em;
+        color: #79c0ff;
+        transition: all 0.5s;
+      }
+
+      .message {
+        font-size: 1rem;
+        color: #8b949e;
+      }
+
+      .instructions {
+        background: #161b22;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 800px;
+        margin: auto;
+      }
+
+      .dashboard {
+        width: 100%;
+        max-width: 800px;
+        margin: 50px auto;
+        text-align: center;
+      }
+
+      a {
+        color: #58a6ff;
+        text-decoration: none;
+      }
+
+      a:visited {
+        color: #58a6ff;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>🟢 Live Dashboard</h1>
+      <section class="instructions">
+        <h2>How it works?</h2>
+        <p>
+          This dashboard will update in <strong>real-time</strong> when a new
+          user connects to the server. Open your Developer Tools and check the
+          Network tab to see the SSE working.
+        </p>
+        <p>
+          The server will send a message with the user's data when a new user
+          connects. The dashboard will display the user's data and change the
+          color of the text.
+        </p>
+        <p>
+          For further details, review the official MDN website on
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+            >Server-sent Events</a
+          >
+        </p>
+      </section>
+      <section class="dashboard">
+        <h2>🌎 Active users</h2>
+        <span id="value"
+          ><span class="message">Waiting for updates...</span></span
+        >
+      </section>
+    </main>
+
+    <script>
+      function getRandomColor() {
+        // Returns a random color from a list of colors
+        const colors = [
+          "red",
+          "blue",
+          "green",
+          "purple",
+          "orange",
+          "pink",
+          "brown",
+          "tomato",
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      // Generates a div with the data from the server
+      // Example of data received:  {"username":"Alice","location":"Paris, France","ip":"56.62.136.129"}
+      function showRenderedValue(data) {
+        const value = document.getElementById("value");
+        value.innerHTML = `
+          <span>${data.username}</span>
+          <span>${data.location}</span>
+          <br />
+          <span>IP: ${data.ip}</span>
+        `;
+        value.style.color = getRandomColor();
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        // Open a connection to the SSE endpoint
+        const eventSource = new EventSource("http://localhost:3000/events");
+
+        // Handle messages from the server
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            showRenderedValue(data);
+          } catch (err) {
+            console.error("Error parsing JSON data:", err);
+          }
+        };
+
+        eventSource.onerror = (err) => {
+          console.error("SSE connection error:", err);
+        };
+      });
+    </script>
+  </body>
+</html>
